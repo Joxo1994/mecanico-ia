@@ -51,7 +51,6 @@
     }
     textarea {
       min-height: 130px;
-      resize: vertical;
     }
     button {
       width: 100%;
@@ -63,13 +62,12 @@
       font-size: 17px;
       font-weight: bold;
     }
-    button:active {
-      transform: scale(0.98);
-    }
     #resultado {
       display: none;
-      white-space: pre-line;
       line-height: 1.6;
+    }
+    .causa {
+      margin: 8px 0;
     }
   </style>
 </head>
@@ -102,79 +100,48 @@
   </div>
   <div class="card" id="resultado"></div>
 </div>
+<script src="app.js"></script>
 <script>
 function diagnosticar() {
-  const tipo = document.getElementById("tipo").value;
-  const vehiculo = document.getElementById("vehiculo").value;
-  const problema = document.getElementById("problema").value.toLowerCase();
-  const resultado = document.getElementById("resultado");
-  if (!problema) {
+  const vehiculo =
+    document.getElementById("vehiculo").value;
+  const problema =
+    document.getElementById("problema").value;
+  const resultado =
+    document.getElementById("resultado");
+  if (!problema.trim()) {
     resultado.style.display = "block";
-    resultado.innerText =
+    resultado.innerHTML =
       "⚠️ Describe primero los síntomas de la avería.";
     return;
   }
-  let respuesta =
-    "🔧 DIAGNÓSTICO MECÁNICO IA\\n\\n";
-  respuesta +=
-    "Vehículo: " +
-    (vehiculo || "No especificado") +
-    "\\n\\n";
-  respuesta += "Posibles causas:\\n";
-  if (
-    problema.includes("tirón") ||
-    problema.includes("tirones") ||
-    problema.includes("falla")
-  ) {
-    respuesta +=
-      "• Bujías o sistema de encendido\\n" +
-      "• Bobinas de encendido\\n" +
-      "• Inyección de combustible\\n" +
-      "• Sensor TPS/MAP\\n" +
-      "• Conectores eléctricos\\n";
-  } else if (
-    problema.includes("no arranca") ||
-    problema.includes("arrancar")
-  ) {
-    respuesta +=
-      "• Batería descargada\\n" +
-      "• Motor de arranque\\n" +
-      "• Relé de arranque\\n" +
-      "• Bomba de combustible\\n" +
-      "• Sistema de encendido\\n";
-  } else if (
-    problema.includes("calienta") ||
-    problema.includes("temperatura")
-  ) {
-    respuesta +=
-      "• Nivel de refrigerante\\n" +
-      "• Termostato\\n" +
-      "• Electroventilador\\n" +
-      "• Radiador obstruido\\n" +
-      "• Bomba de agua\\n";
-  } else if (
-    problema.includes("aceite") ||
-    problema.includes("humo")
-  ) {
-    respuesta +=
-      "• Nivel o presión de aceite\\n" +
-      "• Segmentos del motor\\n" +
-      "• Retenes de válvula\\n" +
-      "• Fugas de aceite\\n";
-  } else {
-    respuesta +=
-      "• Revisar batería y alimentación eléctrica\\n" +
-      "• Comprobar conectores y masas\\n" +
-      "• Revisar sensores relacionados\\n" +
-      "• Comprobar combustible y encendido\\n" +
-      "• Realizar diagnosis OBD si está disponible\\n";
-  }
-  respuesta +=
-    "\\n⚠️ IMPORTANTE\\n" +
-    "Este diagnóstico es orientativo. " +
-    "Realiza las comprobaciones antes de sustituir piezas.";
+  const diagnostico =
+    analizarAveria(vehiculo, problema);
+  let html = "";
+  html += "<h2>🔧 Diagnóstico</h2>";
+  html +=
+    "<p><strong>Vehículo:</strong> " +
+    diagnostico.vehiculo +
+    "</p>";
+  html += "<h3>⚠️ Posibles causas</h3>";
+  diagnostico.causas.forEach(function(causa) {
+    html +=
+      "<div class='causa'>🔹 " +
+      causa +
+      "</div>";
+  });
+  html += "<h3>🔍 Comprobaciones recomendadas</h3>";
+  diagnostico.comprobaciones.forEach(function(comprobacion) {
+    html +=
+      "<div class='causa'>✅ " +
+      comprobacion +
+      "</div>";
+  });
+  html +=
+    "<br><small>⚠️ Diagnóstico orientativo. " +
+    "Comprueba la avería antes de sustituir piezas.</small>";
+  resultado.innerHTML = html;
   resultado.style.display = "block";
-  resultado.innerText = respuesta;
 }
 </script>
 </body>
