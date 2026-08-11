@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mecánico IA</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+    body {
+      margin: 0;
+      background: #111827;
+      color: white;
+    }
+    .app {
+      max-width: 600px;
+      margin: auto;
+      padding: 25px 18px;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 5px;
+    }
+    .subtitle {
+      text-align: center;
+      color: #9ca3af;
+      margin-bottom: 25px;
+    }
+    .card {
+      background: #1f2937;
+      padding: 20px;
+      border-radius: 16px;
+      margin-bottom: 18px;
+    }
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: bold;
+    }
+    select,
+    input,
+    textarea {
+      width: 100%;
+      padding: 13px;
+      border: none;
+      border-radius: 10px;
+      margin-bottom: 15px;
+      font-size: 16px;
+    }
+    textarea {
+      min-height: 130px;
+      resize: vertical;
+    }
+    button {
+      width: 100%;
+      padding: 15px;
+      border: none;
+      border-radius: 10px;
+      background: #2563eb;
+      color: white;
+      font-size: 17px;
+      font-weight: bold;
+    }
+    button:active {
+      transform: scale(0.98);
+    }
+    #resultado {
+      display: none;
+      white-space: pre-line;
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+  <h1>🔧 Mecánico IA</h1>
+  <div class="subtitle">
+    Diagnóstico inteligente para coches y motos
+  </div>
+  <div class="card">
+    <label>Tipo de vehículo</label>
+    <select id="tipo">
+      <option value="moto">🏍️ Moto</option>
+      <option value="coche">🚗 Coche</option>
+    </select>
+    <label>Marca y modelo</label>
+    <input
+      id="vehiculo"
+      type="text"
+      placeholder="Ej: Triumph Street Triple 675"
+    >
+    <label>Describe el problema</label>
+    <textarea
+      id="problema"
+      placeholder="Ej: Da tirones a 2.000 rpm en segunda marcha..."
+    ></textarea>
+    <button onclick="diagnosticar()">
+      🔍 Analizar avería
+    </button>
+  </div>
+  <div class="card" id="resultado"></div>
+</div>
+<script>
+function diagnosticar() {
+  const tipo = document.getElementById("tipo").value;
+  const vehiculo = document.getElementById("vehiculo").value;
+  const problema = document.getElementById("problema").value.toLowerCase();
+  const resultado = document.getElementById("resultado");
+  if (!problema) {
+    resultado.style.display = "block";
+    resultado.innerText =
+      "⚠️ Describe primero los síntomas de la avería.";
+    return;
+  }
+  let respuesta =
+    "🔧 DIAGNÓSTICO MECÁNICO IA\\n\\n";
+  respuesta +=
+    "Vehículo: " +
+    (vehiculo || "No especificado") +
+    "\\n\\n";
+  respuesta += "Posibles causas:\\n";
+  if (
+    problema.includes("tirón") ||
+    problema.includes("tirones") ||
+    problema.includes("falla")
+  ) {
+    respuesta +=
+      "• Bujías o sistema de encendido\\n" +
+      "• Bobinas de encendido\\n" +
+      "• Inyección de combustible\\n" +
+      "• Sensor TPS/MAP\\n" +
+      "• Conectores eléctricos\\n";
+  } else if (
+    problema.includes("no arranca") ||
+    problema.includes("arrancar")
+  ) {
+    respuesta +=
+      "• Batería descargada\\n" +
+      "• Motor de arranque\\n" +
+      "• Relé de arranque\\n" +
+      "• Bomba de combustible\\n" +
+      "• Sistema de encendido\\n";
+  } else if (
+    problema.includes("calienta") ||
+    problema.includes("temperatura")
+  ) {
+    respuesta +=
+      "• Nivel de refrigerante\\n" +
+      "• Termostato\\n" +
+      "• Electroventilador\\n" +
+      "• Radiador obstruido\\n" +
+      "• Bomba de agua\\n";
+  } else if (
+    problema.includes("aceite") ||
+    problema.includes("humo")
+  ) {
+    respuesta +=
+      "• Nivel o presión de aceite\\n" +
+      "• Segmentos del motor\\n" +
+      "• Retenes de válvula\\n" +
+      "• Fugas de aceite\\n";
+  } else {
+    respuesta +=
+      "• Revisar batería y alimentación eléctrica\\n" +
+      "• Comprobar conectores y masas\\n" +
+      "• Revisar sensores relacionados\\n" +
+      "• Comprobar combustible y encendido\\n" +
+      "• Realizar diagnosis OBD si está disponible\\n";
+  }
+  respuesta +=
+    "\\n⚠️ IMPORTANTE\\n" +
+    "Este diagnóstico es orientativo. " +
+    "Realiza las comprobaciones antes de sustituir piezas.";
+  resultado.style.display = "block";
+  resultado.innerText = respuesta;
+}
+</script>
+</body>
+</html>
