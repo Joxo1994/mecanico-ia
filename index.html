@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <title>Mecánico-IA</title>
 
   <style>
@@ -41,9 +42,13 @@
       margin-bottom: 15px;
     }
 
+    h2 {
+      margin-top: 0;
+    }
+
     label {
       display: block;
-      margin-bottom: 8px;
+      margin: 12px 0 7px;
       font-weight: bold;
     }
 
@@ -54,42 +59,36 @@
       padding: 13px;
       border-radius: 8px;
       border: none;
-      margin-bottom: 15px;
       font-size: 16px;
+      background: #f9fafb;
+      color: #111827;
     }
 
     textarea {
-      min-height: 100px;
+      min-height: 110px;
       resize: vertical;
     }
 
     button {
       width: 100%;
       padding: 15px;
+      margin-top: 15px;
       border: none;
       border-radius: 10px;
       background: #2563eb;
       color: white;
       font-size: 17px;
       font-weight: bold;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background: #1d4ed8;
     }
 
     button:disabled {
       background: #4b5563;
-      cursor: not-allowed;
     }
 
-    .mensaje {
-      margin-top: 15px;
-      padding: 15px;
-      border-radius: 10px;
-      background: #374151;
-      display: none;
+    .progreso {
+      color: #60a5fa;
+      font-weight: bold;
+      margin-bottom: 15px;
     }
 
     .respuesta {
@@ -97,97 +96,185 @@
       line-height: 1.6;
     }
 
-    .progreso {
-      color: #60a5fa;
-      font-weight: bold;
-      margin-bottom: 10px;
+    .mensaje {
+      background: #374151;
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 15px;
+      display: none;
     }
 
     .nuevo {
-      margin-top: 15px;
       background: #059669;
     }
 
-    .nuevo:hover {
-      background: #047857;
+    .campo-opcional {
+      color: #9ca3af;
+      font-size: 13px;
+      font-weight: normal;
+    }
+
+    .aviso {
+      font-size: 13px;
+      color: #fbbf24;
+      margin-top: 15px;
+      line-height: 1.5;
     }
   </style>
 </head>
 
 <body>
 
-  <div class="container">
+<div class="container">
 
-    <h1>🔧 Mecánico-IA</h1>
+  <h1>🔧 Mecánico-IA</h1>
 
-    <div class="subtitulo">
-      Diagnóstico inteligente para coches y motos
+  <div class="subtitulo">
+    Diagnóstico inteligente para coches y motos
+  </div>
+
+  <div id="mensaje" class="mensaje"></div>
+
+  <div class="card" id="formulario">
+
+    <h2>🚗 Datos del vehículo</h2>
+
+    <label>Tipo de vehículo</label>
+
+    <select id="tipo">
+      <option value="Coche">🚗 Coche</option>
+      <option value="Moto">🏍️ Moto</option>
+    </select>
+
+    <label>Marca</label>
+
+    <input
+      id="marca"
+      type="text"
+      placeholder="Ej: Audi"
+    >
+
+    <label>Modelo</label>
+
+    <input
+      id="modelo"
+      type="text"
+      placeholder="Ej: A3"
+    >
+
+    <label>Año</label>
+
+    <input
+      id="anio"
+      type="number"
+      placeholder="Ej: 2011"
+    >
+
+    <label>Motor</label>
+
+    <input
+      id="motor"
+      type="text"
+      placeholder="Ej: 1.8 TFSI 160 CV"
+    >
+
+    <label>Combustible</label>
+
+    <select id="combustible">
+      <option value="Gasolina">Gasolina</option>
+      <option value="Diésel">Diésel</option>
+      <option value="Híbrido">Híbrido</option>
+      <option value="Eléctrico">Eléctrico</option>
+      <option value="Otro">Otro</option>
+    </select>
+
+    <label>
+      Kilómetros
+      <span class="campo-opcional">(opcional)</span>
+    </label>
+
+    <input
+      id="kilometros"
+      type="number"
+      placeholder="Ej: 160000"
+    >
+
+    <h2 style="margin-top:25px;">
+      🔍 Describe el problema
+    </h2>
+
+    <label>Síntomas</label>
+
+    <textarea
+      id="problema"
+      placeholder="Describe exactamente qué hace el vehículo..."
+    ></textarea>
+
+    <label>
+      Testigos encendidos
+      <span class="campo-opcional">(opcional)</span>
+    </label>
+
+    <input
+      id="testigos"
+      type="text"
+      placeholder="Ej: Check Engine"
+    >
+
+    <label>
+      Reparaciones recientes
+      <span class="campo-opcional">(opcional)</span>
+    </label>
+
+    <textarea
+      id="reparaciones"
+      placeholder="Ej: Cambio de bujías hace 2 semanas"
+    ></textarea>
+
+    <button id="btnInicio" onclick="iniciarDiagnostico()">
+      🔍 Iniciar diagnóstico
+    </button>
+
+    <div class="aviso">
+      ⚠️ Mecánico-IA ofrece orientación técnica y no sustituye una revisión profesional.
     </div>
-
-    <div class="card">
-
-      <label for="vehiculo">Vehículo</label>
-
-      <input
-        id="vehiculo"
-        type="text"
-        placeholder="Ej: Audi A3 1.8 TFSI 2011"
-      >
-
-      <label for="tipo">Tipo de vehículo</label>
-
-      <select id="tipo">
-        <option value="coche">Coche</option>
-        <option value="moto">Moto</option>
-      </select>
-
-      <label for="problema">¿Qué problema tiene?</label>
-
-      <textarea
-        id="problema"
-        placeholder="Describe los síntomas..."
-      ></textarea>
-
-      <button id="btnDiagnostico" onclick="iniciarDiagnostico()">
-        🔍 Comenzar diagnóstico
-      </button>
-
-    </div>
-
-    <div id="zonaDiagnostico" class="card" style="display:none;">
-
-      <div id="progreso" class="progreso"></div>
-
-      <div id="pregunta" class="respuesta"></div>
-
-      <textarea
-        id="respuestaUsuario"
-        placeholder="Escribe tu respuesta..."
-      ></textarea>
-
-      <button onclick="responderPregunta()">
-        ➡️ Continuar
-      </button>
-
-    </div>
-
-    <div id="resultado" class="card" style="display:none;">
-
-      <h2>🔧 Diagnóstico</h2>
-
-      <div id="textoResultado" class="respuesta"></div>
-
-      <button class="nuevo" onclick="nuevoDiagnostico()">
-        🔄 Nuevo diagnóstico
-      </button>
-
-    </div>
-
-    <div id="mensaje" class="mensaje"></div>
 
   </div>
 
-  <script src="app.js"></script>
+
+  <div class="card" id="zonaDiagnostico" style="display:none;">
+
+    <div id="progreso" class="progreso"></div>
+
+    <div id="pregunta" class="respuesta"></div>
+
+    <textarea
+      id="respuestaUsuario"
+      placeholder="Escribe tu respuesta..."
+    ></textarea>
+
+    <button onclick="responderPregunta()">
+      ➡️ Continuar
+    </button>
+
+  </div>
+
+
+  <div class="card" id="resultado" style="display:none;">
+
+    <h2>🧰 Resultado del diagnóstico</h2>
+
+    <div id="textoResultado" class="respuesta"></div>
+
+    <button class="nuevo" onclick="nuevoDiagnostico()">
+      🔄 Nuevo diagnóstico
+    </button>
+
+  </div>
+
+</div>
+
+<script src="app.js"></script>
 
 </body>
 </html>
