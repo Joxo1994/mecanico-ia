@@ -1,5 +1,3 @@
-import { buscarVehiculo } from "../data/vehiculos.js";
-
 export default async function handler(req, res) {
 
   if (req.method !== "POST") {
@@ -17,26 +15,136 @@ export default async function handler(req, res) {
       historial = []
     } = req.body;
 
+
     if (!vehiculo || !problema) {
       return res.status(400).json({
         error: "Faltan datos del vehículo"
       });
     }
 
-    // Buscar información específica del vehículo
-    const datosTecnicos = buscarVehiculo(
-      vehiculo.marca,
-      vehiculo.modelo,
-      vehiculo.anio,
-      vehiculo.motor
-    );
 
-    // Preparar información de la base de datos
-    const baseTecnica = datosTecnicos
-      ? JSON.stringify(datosTecnicos, null, 2)
-      : "No existe información específica registrada para este vehículo.";
+    // ==========================================
+    // BASE TÉCNICA
+    // ==========================================
 
-    // Limpiar códigos OBD
+    const baseTecnica = `
+
+TRIUMPH STREET TRIPLE 675 - 2011
+
+Averías conocidas:
+
+1. Problemas de encendido
+Síntomas:
+- Tirones
+- Fallos de combustión
+- Pérdida de potencia
+- Motor que se apaga
+- Funcionamiento irregular
+
+Códigos relacionados:
+P0300
+P0301
+P0302
+P0303
+
+Posibles causas:
+- Bujías
+- Bobinas
+- Conectores eléctricos
+- Alimentación de combustible
+- Inyectores
+- Sensores del motor
+
+Pruebas:
+- Comprobar bujías
+- Comprobar bobinas
+- Revisar conectores
+- Comprobar alimentación eléctrica
+- Comprobar combustible
+
+
+2. Problemas del sistema de carga
+
+Síntomas:
+- Batería descargada
+- Fallos eléctricos
+- Motor que se apaga
+- Problemas de arranque
+- Iluminación irregular
+
+Posibles causas:
+- Estator
+- Regulador/rectificador
+- Batería
+- Conectores
+
+Pruebas:
+- Medir tensión de batería
+- Comprobar tensión de carga
+- Revisar conectores
+- Comprobar estator
+- Comprobar regulador/rectificador
+
+
+AUDI A3 1.8 TFSI - 2011
+
+Averías conocidas:
+
+1. Fallos de encendido
+
+Síntomas:
+- Tirones
+- Pérdida de potencia
+- Ralentí irregular
+- Dificultad de arranque
+
+Códigos:
+P0300
+P0301
+P0302
+P0303
+P0304
+
+Posibles causas:
+- Bujías
+- Bobinas
+- Inyectores
+- Entrada de aire
+- Combustible
+- Compresión
+
+
+2. Mezcla pobre
+
+Código:
+P0171
+
+Posibles causas:
+- Fugas de admisión
+- Entrada de aire no medida
+- Sensor de masa de aire
+- Presión de combustible
+- Inyectores
+
+
+3. Eficiencia del catalizador
+
+Código:
+P0420
+
+Posibles causas:
+- Catalizador
+- Sonda lambda
+- Fugas de escape
+- Problemas de combustión
+
+`;
+
+
+    // ==========================================
+    // CÓDIGOS OBD
+    // ==========================================
+
     const codigosValidos = obd
       .map(codigo =>
         String(codigo)
@@ -47,12 +155,17 @@ export default async function handler(req, res) {
         /^[PBCU][0-9]{4}$/.test(codigo)
       );
 
-    const obdTexto =
-      codigosValidos.length > 0
-        ? codigosValidos.join(", ")
-        : "No se han proporcionado códigos OBD-II válidos.";
 
-    // Historial de preguntas
+    const obdTexto =
+      codigosValidos.length
+        ? codigosValidos.join(", ")
+        : "No se han introducido códigos OBD válidos.";
+
+
+    // ==========================================
+    // HISTORIAL
+    // ==========================================
+
     const historialTexto = historial
       .map((item, index) => {
 
@@ -67,25 +180,23 @@ ${item.respuesta}
       })
       .join("\n");
 
+
+    // ==========================================
+    // PROMPT
+    // ==========================================
+
     const prompt = `
 
 Eres MECÁNICO-IA.
 
-Eres un especialista profesional en diagnóstico
-de automóviles y motocicletas.
+Eres un especialista en diagnóstico de coches
+y motocicletas.
 
-Tu objetivo es encontrar la causa más probable
-de una avería utilizando:
-
-- Datos del vehículo
-- Síntomas
-- Códigos OBD
-- Historial de preguntas
-- Base técnica de Mecánico-IA
+Debes realizar un diagnóstico progresivo.
 
 ========================
 
-DATOS DEL VEHÍCULO
+VEHÍCULO
 
 Tipo:
 ${vehiculo.tipo}
@@ -116,17 +227,9 @@ ${vehiculo.reparaciones || "No indicadas"}
 
 ========================
 
-CÓDIGOS OBD-II
+CÓDIGOS OBD
 
 ${obdTexto}
-
-IMPORTANTE:
-
-Un código OBD no significa automáticamente
-que una pieza concreta esté averiada.
-
-Utiliza el código como una pista y determina
-qué pruebas pueden confirmar la causa.
 
 ========================
 
@@ -136,13 +239,13 @@ ${problema}
 
 ========================
 
-HISTORIAL DEL DIAGNÓSTICO
+HISTORIAL
 
-${historialTexto || "Todavía no existen respuestas."}
+${historialTexto || "No existen preguntas anteriores."}
 
 ========================
 
-BASE TÉCNICA DE MECÁNICO-IA
+BASE TÉCNICA
 
 ${baseTecnica}
 
@@ -150,53 +253,47 @@ ${baseTecnica}
 
 REGLAS
 
-1. Analiza primero la información específica
-del vehículo cuando exista.
+1. Analiza marca, modelo, año y motor.
 
-2. Utiliza marca, modelo, año y motor.
+2. Utiliza los códigos OBD como pistas.
 
-3. Relaciona los códigos OBD con los síntomas.
+3. Un código OBD NO significa automáticamente que una pieza esté averiada.
 
-4. No confundas un código de avería con una pieza averiada.
+4. Utiliza los síntomas para confirmar o descartar causas.
 
 5. Haz UNA SOLA pregunta cada vez.
 
-6. Cada pregunta debe servir para descartar causas.
+6. No repitas preguntas.
 
-7. No repitas preguntas.
+7. Prioriza las causas más compatibles con los síntomas.
 
-8. Prioriza las averías conocidas del vehículo
-cuando los síntomas coincidan.
+8. Si necesitas información importante, pregunta por ella.
 
-9. Si una avería aparece en la base técnica,
-trátala como hipótesis, no como diagnóstico confirmado.
+9. No inventes datos técnicos.
 
-10. Si no existe información específica del vehículo,
-utiliza conocimientos generales de mecánica.
+10. No inventes pares de apriete.
 
-11. No inventes códigos OBD.
+11. No inventes precios exactos.
 
-12. No inventes pares de apriete.
+12. Si existe riesgo para circular, adviértelo.
 
-13. No inventes especificaciones técnicas.
-
-14. No inventes precios exactos.
-
-15. Si falta información importante, pregunta por ella.
-
-16. Si existe riesgo de seguir circulando,
-indícalo claramente.
-
-17. Cuando tengas información suficiente,
-realiza el diagnóstico final.
+13. Cuando tengas suficiente información, realiza el diagnóstico final.
 
 ========================
 
+SI TODAVÍA NECESITAS INFORMACIÓN
+
+Responde únicamente con UNA pregunta.
+
+========================
+
+SI YA TIENES INFORMACIÓN SUFICIENTE
+
+Empieza exactamente con:
+
 DIAGNÓSTICO FINAL
 
-Cuando tengas suficiente información responde:
-
-DIAGNÓSTICO FINAL
+Y utiliza:
 
 🚗 VEHÍCULO
 
@@ -222,12 +319,13 @@ DIAGNÓSTICO FINAL
 
 📋 RECOMENDACIONES FINALES
 
-Si todavía necesitas información,
-responde únicamente con UNA pregunta.
-
 `;
 
-    // Llamada a OpenAI
+
+    // ==========================================
+    // OPENAI
+    // ==========================================
+
     const openaiResponse = await fetch(
       "https://api.openai.com/v1/chat/completions",
       {
@@ -258,42 +356,67 @@ responde únicamente con UNA pregunta.
           temperature: 0.2,
 
           max_tokens: 1800
+
         })
       }
     );
+
 
     if (!openaiResponse.ok) {
 
       const error =
         await openaiResponse.text();
 
-      console.error(error);
+      console.error(
+        "OPENAI ERROR:",
+        error
+      );
 
       return res.status(500).json({
         error: "Error de OpenAI"
       });
     }
 
+
     const data =
       await openaiResponse.json();
+
 
     const respuesta =
       data.choices?.[0]?.message?.content || "";
 
+
+    if (!respuesta) {
+
+      return res.status(500).json({
+        error: "OpenAI no devolvió respuesta"
+      });
+
+    }
+
+
     const final =
-      respuesta.includes("DIAGNÓSTICO FINAL");
+      respuesta.includes(
+        "DIAGNÓSTICO FINAL"
+      );
+
 
     return res.status(200).json({
       respuesta,
       final
     });
 
+
   } catch (error) {
 
-    console.error(error);
+    console.error(
+      "ERROR DIAGNOSTICO:",
+      error
+    );
 
     return res.status(500).json({
       error: "Error interno del servidor"
     });
+
   }
 }
