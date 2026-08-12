@@ -1,115 +1,153 @@
-function analizarAveria(vehiculo, problema) {
-  const texto = problema.toLowerCase();
+let diagnostico = {
+  vehiculo: "",
+  tipo: "",
+  problema: "",
+  historial: []
+};
 
-  let causas = [];
-  let comprobaciones = [];
+let numeroPregunta = 0;
 
-  if (
-    texto.includes("tirón") ||
-    texto.includes("tirones") ||
-    texto.includes("ratea") ||
-    texto.includes("falla")
-  ) {
-    causas = [
-      "Bujías o sistema de encendido",
-      "Bobinas de encendido",
-      "Inyección de combustible",
-      "Sensor TPS o MAP",
-      "Conectores o masas eléctricas"
-    ];
+async function iniciarDiagnostico() {
 
-    comprobaciones = [
-      "Comprobar bujías y estado de los electrodos",
-      "Revisar conectores de bobinas e inyectores",
-      "Comprobar batería y tensión de carga",
-      "Realizar diagnosis OBD si el vehículo dispone de ella",
-      "Comprobar sensores relacionados con la admisión"
-    ];
+  const vehiculo = document.getElementById("vehiculo").value.trim();
+  const tipo = document.getElementById("tipo").value;
+  const problema = document.getElementById("problema").value.trim();
 
-  } else if (
-    texto.includes("no arranca") ||
-    texto.includes("no arranca") ||
-    texto.includes("arranque")
-  ) {
-    causas = [
-      "Batería descargada o deteriorada",
-      "Relé o motor de arranque",
-      "Falta de combustible",
-      "Bomba de combustible",
-      "Sistema de encendido"
-    ];
-
-    comprobaciones = [
-      "Medir la tensión de la batería",
-      "Comprobar si funciona el motor de arranque",
-      "Comprobar fusibles y relés",
-      "Comprobar alimentación de combustible",
-      "Comprobar chispa"
-    ];
-
-  } else if (
-    texto.includes("calienta") ||
-    texto.includes("temperatura") ||
-    texto.includes("recalienta")
-  ) {
-    causas = [
-      "Nivel bajo de refrigerante",
-      "Termostato defectuoso",
-      "Electroventilador",
-      "Radiador obstruido",
-      "Bomba de agua"
-    ];
-
-    comprobaciones = [
-      "Comprobar nivel y posibles fugas de refrigerante",
-      "Comprobar funcionamiento del electroventilador",
-      "Revisar termostato",
-      "Revisar estado del radiador",
-      "Comprobar circulación del refrigerante"
-    ];
-
-  } else if (
-    texto.includes("aceite") ||
-    texto.includes("humo azul") ||
-    texto.includes("consume aceite")
-  ) {
-    causas = [
-      "Fuga externa de aceite",
-      "Segmentos del motor",
-      "Retenes de válvula",
-      "Problema de ventilación del cárter",
-      "Consumo interno de aceite"
-    ];
-
-    comprobaciones = [
-      "Comprobar nivel de aceite",
-      "Buscar fugas externas",
-      "Observar el color del humo",
-      "Comprobar sistema de ventilación del cárter",
-      "Realizar prueba de compresión si procede"
-    ];
-
-  } else {
-    causas = [
-      "Problema eléctrico",
-      "Sistema de combustible",
-      "Sistema de encendido",
-      "Sensor del motor",
-      "Problema mecánico"
-    ];
-
-    comprobaciones = [
-      "Comprobar batería y masas",
-      "Revisar fusibles y conectores",
-      "Realizar diagnosis OBD",
-      "Comprobar combustible",
-      "Revisar síntomas concretos del motor"
-    ];
+  if (!vehiculo || !problema) {
+    mostrarMensaje("⚠️ Introduce el vehículo y describe el problema.");
+    return;
   }
 
-  return {
-    vehiculo: vehiculo || "Vehículo no especificado",
-    causas: causas,
-    comprobaciones: comprobaciones
+  diagnostico = {
+    vehiculo,
+    tipo,
+    problema,
+    historial: []
   };
+
+  numeroPregunta = 1;
+
+  document.getElementById("btnDiagnostico").disabled = true;
+
+  document.getElementById("zonaDiagnostico").style.display = "block";
+
+  await enviarDiagnostico();
+}
+
+
+async function responderPregunta() {
+
+  const respuesta = document
+    .getElementById("respuestaUsuario")
+    .value
+    .trim();
+
+  if (!respuesta) {
+    mostrarMensaje("⚠️ Escribe una respuesta.");
+    return;
+  }
+
+  diagnostico.historial.push({
+    pregunta: document.getElementById("pregunta").innerText,
+    respuesta: respuesta
+  });
+
+  document.getElementById("respuestaUsuario").value = "";
+
+  numeroPregunta++;
+
+  await enviarDiagnostico();
+}
+
+
+async function enviarDiagnostico() {
+
+  mostrarMensaje("🤖 Mecánico-IA está analizando...");
+
+  try {
+
+    const response = await fetch("/api/diagnostico", {
+
+      method: "POST",
+
+      headers: {
+        "Content-Type": "application/json"
+      },
+
+      body: JSON.stringify(diagnostico)
+
+    });
+
+    if (!response.ok) {
+      throw new Error("Error en el servidor");
+    }
+
+    const data = await response.json();
+
+    ocultarMensaje();
+
+    if (data.final) {
+
+      document.getElementById("zonaDiagnostico").style.display = "none";
+
+      document.getElementById("resultado").style.display = "block";
+
+      document.getElementById("textoResultado").innerText =
+        data.respuesta;
+
+      return;
+    }
+
+    document.getElementById("progreso").innerText =
+      "Pregunta " + numeroPregunta;
+
+    document.getElementById("pregunta").innerText =
+      data.respuesta;
+
+  } catch (error) {
+
+    console.error(error);
+
+    mostrarMensaje(
+      "❌ No se ha podido conectar con Mecánico-IA."
+    );
+  }
+}
+
+
+function nuevoDiagnostico() {
+
+  diagnostico = {
+    vehiculo: "",
+    tipo: "",
+    problema: "",
+    historial: []
+  };
+
+  numeroPregunta = 0;
+
+  document.getElementById("vehiculo").value = "";
+  document.getElementById("problema").value = "";
+
+  document.getElementById("resultado").style.display = "none";
+
+  document.getElementById("zonaDiagnostico").style.display = "none";
+
+  document.getElementById("btnDiagnostico").disabled = false;
+}
+
+
+function mostrarMensaje(texto) {
+
+  const mensaje = document.getElementById("mensaje");
+
+  mensaje.innerText = texto;
+
+  mensaje.style.display = "block";
+}
+
+
+function ocultarMensaje() {
+
+  document.getElementById("mensaje").style.display = "none";
 }
