@@ -1,4 +1,4 @@
-export default async function handler(req, res) {
+import { buscarVehiculo } from "../data/vehiculos.js";
 
   if (req.method !== "POST") {
 
