@@ -79,6 +79,7 @@
       color: white;
       font-size: 17px;
       font-weight: bold;
+      cursor: pointer;
     }
 
     button:disabled {
@@ -108,10 +109,16 @@
       background: #059669;
     }
 
-    .campo-opcional {
+    .obd {
+      border: 1px solid #374151;
+      margin-top: 20px;
+      padding-top: 20px;
+    }
+
+    .obd-info {
       color: #9ca3af;
-      font-size: 13px;
-      font-weight: normal;
+      font-size: 14px;
+      line-height: 1.5;
     }
 
     .aviso {
@@ -119,6 +126,11 @@
       color: #fbbf24;
       margin-top: 15px;
       line-height: 1.5;
+    }
+
+    .codigo {
+      font-family: monospace;
+      font-weight: bold;
     }
   </style>
 </head>
@@ -188,16 +200,35 @@
       <option value="Otro">Otro</option>
     </select>
 
-    <label>
-      Kilómetros
-      <span class="campo-opcional">(opcional)</span>
-    </label>
+    <label>Kilómetros</label>
 
     <input
       id="kilometros"
       type="number"
       placeholder="Ej: 160000"
     >
+
+    <div class="obd">
+
+      <h2>🔌 Diagnóstico OBD-II</h2>
+
+      <div class="obd-info">
+        Si tienes un lector OBD, introduce los códigos que aparecen.
+        Puedes introducir varios separados por comas.
+        <br><br>
+        Ejemplo:
+        <span class="codigo">P0301, P0171</span>
+      </div>
+
+      <label>Códigos OBD-II</label>
+
+      <input
+        id="codigosOBD"
+        type="text"
+        placeholder="Ej: P0301, P0171"
+      >
+
+    </div>
 
     <h2 style="margin-top:25px;">
       🔍 Describe el problema
@@ -210,10 +241,7 @@
       placeholder="Describe exactamente qué hace el vehículo..."
     ></textarea>
 
-    <label>
-      Testigos encendidos
-      <span class="campo-opcional">(opcional)</span>
-    </label>
+    <label>Testigos encendidos</label>
 
     <input
       id="testigos"
@@ -221,10 +249,7 @@
       placeholder="Ej: Check Engine"
     >
 
-    <label>
-      Reparaciones recientes
-      <span class="campo-opcional">(opcional)</span>
-    </label>
+    <label>Reparaciones recientes</label>
 
     <textarea
       id="reparaciones"
@@ -236,7 +261,9 @@
     </button>
 
     <div class="aviso">
-      ⚠️ Mecánico-IA ofrece orientación técnica y no sustituye una revisión profesional.
+      ⚠️ Mecánico-IA ofrece orientación técnica y no sustituye una
+      revisión profesional. Los códigos OBD deben confirmarse con
+      pruebas antes de sustituir piezas.
     </div>
 
   </div>
