@@ -1,6 +1,7 @@
 let diagnostico = {
   vehiculo: {},
   problema: "",
+  obd: [],
   historial: []
 };
 
@@ -14,8 +15,11 @@ async function iniciarDiagnostico() {
   const modelo = document.getElementById("modelo").value.trim();
   const anio = document.getElementById("anio").value.trim();
   const motor = document.getElementById("motor").value.trim();
-  const combustible = document.getElementById("combustible").value;
-  const kilometros = document.getElementById("kilometros").value.trim();
+  const combustible =
+    document.getElementById("combustible").value;
+
+  const kilometros =
+    document.getElementById("kilometros").value.trim();
 
   const problema =
     document.getElementById("problema").value.trim();
@@ -26,6 +30,9 @@ async function iniciarDiagnostico() {
   const reparaciones =
     document.getElementById("reparaciones").value.trim();
 
+  const obdTexto =
+    document.getElementById("codigosOBD").value.trim();
+
 
   if (!marca || !modelo || !anio || !motor || !problema) {
 
@@ -35,6 +42,15 @@ async function iniciarDiagnostico() {
 
     return;
   }
+
+
+  const obd = obdTexto
+    ? obdTexto
+        .toUpperCase()
+        .split(",")
+        .map(codigo => codigo.trim())
+        .filter(codigo => codigo.length > 0)
+    : [];
 
 
   diagnostico = {
@@ -52,6 +68,8 @@ async function iniciarDiagnostico() {
     },
 
     problema,
+
+    obd,
 
     historial: []
   };
@@ -128,9 +146,7 @@ async function enviarDiagnostico() {
 
     if (!response.ok) {
 
-      throw new Error(
-        "Error del servidor"
-      );
+      throw new Error("Error del servidor");
 
     }
 
@@ -189,6 +205,7 @@ function nuevoDiagnostico() {
   diagnostico = {
     vehiculo: {},
     problema: "",
+    obd: [],
     historial: []
   };
 
