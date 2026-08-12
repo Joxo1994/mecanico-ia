@@ -1,33 +1,67 @@
 let diagnostico = {
-  vehiculo: "",
-  tipo: "",
+  vehiculo: {},
   problema: "",
   historial: []
 };
 
 let numeroPregunta = 0;
 
+
 async function iniciarDiagnostico() {
 
-  const vehiculo = document.getElementById("vehiculo").value.trim();
   const tipo = document.getElementById("tipo").value;
-  const problema = document.getElementById("problema").value.trim();
+  const marca = document.getElementById("marca").value.trim();
+  const modelo = document.getElementById("modelo").value.trim();
+  const anio = document.getElementById("anio").value.trim();
+  const motor = document.getElementById("motor").value.trim();
+  const combustible = document.getElementById("combustible").value;
+  const kilometros = document.getElementById("kilometros").value.trim();
 
-  if (!vehiculo || !problema) {
-    mostrarMensaje("⚠️ Introduce el vehículo y describe el problema.");
+  const problema =
+    document.getElementById("problema").value.trim();
+
+  const testigos =
+    document.getElementById("testigos").value.trim();
+
+  const reparaciones =
+    document.getElementById("reparaciones").value.trim();
+
+
+  if (!marca || !modelo || !anio || !motor || !problema) {
+
+    mostrarMensaje(
+      "⚠️ Completa marca, modelo, año, motor y describe el problema."
+    );
+
     return;
   }
 
+
   diagnostico = {
-    vehiculo,
-    tipo,
+
+    vehiculo: {
+      tipo,
+      marca,
+      modelo,
+      anio,
+      motor,
+      combustible,
+      kilometros,
+      testigos,
+      reparaciones
+    },
+
     problema,
+
     historial: []
   };
 
+
   numeroPregunta = 1;
 
-  document.getElementById("btnDiagnostico").disabled = true;
+  document.getElementById("btnInicio").disabled = true;
+
+  document.getElementById("formulario").style.display = "none";
 
   document.getElementById("zonaDiagnostico").style.display = "block";
 
@@ -37,20 +71,29 @@ async function iniciarDiagnostico() {
 
 async function responderPregunta() {
 
-  const respuesta = document
-    .getElementById("respuestaUsuario")
-    .value
-    .trim();
+  const respuesta =
+    document.getElementById("respuestaUsuario").value.trim();
+
 
   if (!respuesta) {
-    mostrarMensaje("⚠️ Escribe una respuesta.");
+
+    mostrarMensaje(
+      "⚠️ Escribe una respuesta antes de continuar."
+    );
+
     return;
   }
 
+
   diagnostico.historial.push({
-    pregunta: document.getElementById("pregunta").innerText,
-    respuesta: respuesta
+
+    pregunta:
+      document.getElementById("pregunta").innerText,
+
+    respuesta
+
   });
+
 
   document.getElementById("respuestaUsuario").value = "";
 
@@ -62,47 +105,73 @@ async function responderPregunta() {
 
 async function enviarDiagnostico() {
 
-  mostrarMensaje("🤖 Mecánico-IA está analizando...");
+  mostrarMensaje(
+    "🤖 Mecánico-IA está analizando el vehículo..."
+  );
+
 
   try {
 
-    const response = await fetch("/api/diagnostico", {
+    const response = await fetch(
+      "/api/diagnostico",
+      {
+        method: "POST",
 
-      method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
 
-      headers: {
-        "Content-Type": "application/json"
-      },
+        body: JSON.stringify(diagnostico)
+      }
+    );
 
-      body: JSON.stringify(diagnostico)
-
-    });
 
     if (!response.ok) {
-      throw new Error("Error en el servidor");
+
+      throw new Error(
+        "Error del servidor"
+      );
+
     }
+
 
     const data = await response.json();
 
     ocultarMensaje();
 
+
     if (data.final) {
 
-      document.getElementById("zonaDiagnostico").style.display = "none";
+      document.getElementById(
+        "zonaDiagnostico"
+      ).style.display = "none";
 
-      document.getElementById("resultado").style.display = "block";
 
-      document.getElementById("textoResultado").innerText =
-        data.respuesta;
+      document.getElementById(
+        "resultado"
+      ).style.display = "block";
+
+
+      document.getElementById(
+        "textoResultado"
+      ).innerText = data.respuesta;
+
 
       return;
     }
 
-    document.getElementById("progreso").innerText =
+
+    document.getElementById(
+      "progreso"
+    ).innerText =
       "Pregunta " + numeroPregunta;
 
-    document.getElementById("pregunta").innerText =
+
+    document.getElementById(
+      "pregunta"
+    ).innerText =
       data.respuesta;
+
 
   } catch (error) {
 
@@ -118,28 +187,48 @@ async function enviarDiagnostico() {
 function nuevoDiagnostico() {
 
   diagnostico = {
-    vehiculo: "",
-    tipo: "",
+    vehiculo: {},
     problema: "",
     historial: []
   };
 
   numeroPregunta = 0;
 
-  document.getElementById("vehiculo").value = "";
-  document.getElementById("problema").value = "";
 
-  document.getElementById("resultado").style.display = "none";
+  document.getElementById(
+    "formulario"
+  ).style.display = "block";
 
-  document.getElementById("zonaDiagnostico").style.display = "none";
 
-  document.getElementById("btnDiagnostico").disabled = false;
+  document.getElementById(
+    "resultado"
+  ).style.display = "none";
+
+
+  document.getElementById(
+    "zonaDiagnostico"
+  ).style.display = "none";
+
+
+  document.getElementById(
+    "btnInicio"
+  ).disabled = false;
+
+
+  document.querySelectorAll(
+    "input, textarea"
+  ).forEach(element => {
+
+    element.value = "";
+
+  });
 }
 
 
 function mostrarMensaje(texto) {
 
-  const mensaje = document.getElementById("mensaje");
+  const mensaje =
+    document.getElementById("mensaje");
 
   mensaje.innerText = texto;
 
@@ -149,5 +238,7 @@ function mostrarMensaje(texto) {
 
 function ocultarMensaje() {
 
-  document.getElementById("mensaje").style.display = "none";
+  document.getElementById(
+    "mensaje"
+  ).style.display = "none";
 }
