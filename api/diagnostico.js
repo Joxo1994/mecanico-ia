@@ -1,13 +1,12 @@
 import { buscarVehiculo } from "../data/vehiculos.js";
 
-  if (req.method !== "POST") {
+export default async function handler(req, res) {
 
+  if (req.method !== "POST") {
     return res.status(405).json({
       error: "Método no permitido"
     });
-
   }
-
 
   try {
 
@@ -18,16 +17,26 @@ import { buscarVehiculo } from "../data/vehiculos.js";
       historial = []
     } = req.body;
 
-
     if (!vehiculo || !problema) {
-
       return res.status(400).json({
         error: "Faltan datos del vehículo"
       });
-
     }
 
+    // Buscar información específica del vehículo
+    const datosTecnicos = buscarVehiculo(
+      vehiculo.marca,
+      vehiculo.modelo,
+      vehiculo.anio,
+      vehiculo.motor
+    );
 
+    // Preparar información de la base de datos
+    const baseTecnica = datosTecnicos
+      ? JSON.stringify(datosTecnicos, null, 2)
+      : "No existe información específica registrada para este vehículo.";
+
+    // Limpiar códigos OBD
     const codigosValidos = obd
       .map(codigo =>
         String(codigo)
@@ -38,13 +47,12 @@ import { buscarVehiculo } from "../data/vehiculos.js";
         /^[PBCU][0-9]{4}$/.test(codigo)
       );
 
-
     const obdTexto =
       codigosValidos.length > 0
         ? codigosValidos.join(", ")
         : "No se han proporcionado códigos OBD-II válidos.";
 
-
+    // Historial de preguntas
     const historialTexto = historial
       .map((item, index) => {
 
@@ -59,15 +67,21 @@ ${item.respuesta}
       })
       .join("\n");
 
-
     const prompt = `
 
 Eres MECÁNICO-IA.
 
-Eres un especialista en diagnóstico de automóviles
-y motocicletas.
+Eres un especialista profesional en diagnóstico
+de automóviles y motocicletas.
 
-Debes realizar un diagnóstico progresivo y técnico.
+Tu objetivo es encontrar la causa más probable
+de una avería utilizando:
+
+- Datos del vehículo
+- Síntomas
+- Códigos OBD
+- Historial de preguntas
+- Base técnica de Mecánico-IA
 
 ========================
 
@@ -108,18 +122,11 @@ ${obdTexto}
 
 IMPORTANTE:
 
-Los códigos OBD son códigos de diagnóstico,
-NO son automáticamente piezas averiadas.
+Un código OBD no significa automáticamente
+que una pieza concreta esté averiada.
 
-Por ejemplo:
-
-P0301 significa fallo de combustión/encendido
-detectado en el cilindro 1.
-
-No debes afirmar automáticamente que la bobina,
-bujía, inyector o cilindro está averiado.
-
-Debes utilizar pruebas para determinar la causa.
+Utiliza el código como una pista y determina
+qué pruebas pueden confirmar la causa.
 
 ========================
 
@@ -129,113 +136,107 @@ ${problema}
 
 ========================
 
-HISTORIAL
+HISTORIAL DEL DIAGNÓSTICO
 
-${historialTexto || "Todavía no hay respuestas."}
+${historialTexto || "Todavía no existen respuestas."}
+
+========================
+
+BASE TÉCNICA DE MECÁNICO-IA
+
+${baseTecnica}
 
 ========================
 
 REGLAS
 
-1. Analiza el vehículo concreto.
+1. Analiza primero la información específica
+del vehículo cuando exista.
 
-2. Ten en cuenta marca, modelo, año y motor.
+2. Utiliza marca, modelo, año y motor.
 
-3. Analiza los códigos OBD junto con los síntomas.
+3. Relaciona los códigos OBD con los síntomas.
 
-4. No confundas código de avería con pieza averiada.
+4. No confundas un código de avería con una pieza averiada.
 
-5. Haz UNA sola pregunta cada vez.
+5. Haz UNA SOLA pregunta cada vez.
 
-6. Cada pregunta debe ayudar a descartar causas.
+6. Cada pregunta debe servir para descartar causas.
 
 7. No repitas preguntas.
 
-8. Si el código puede tener varias causas, explica qué pruebas
-permiten diferenciarlas.
+8. Prioriza las averías conocidas del vehículo
+cuando los síntomas coincidan.
 
-9. No inventes especificaciones técnicas.
+9. Si una avería aparece en la base técnica,
+trátala como hipótesis, no como diagnóstico confirmado.
 
-10. No inventes pares de apriete.
+10. Si no existe información específica del vehículo,
+utiliza conocimientos generales de mecánica.
 
 11. No inventes códigos OBD.
 
-12. No inventes precios exactos.
+12. No inventes pares de apriete.
 
-13. Si falta una información fundamental, pregunta por ella.
+13. No inventes especificaciones técnicas.
 
-14. Si existe riesgo de continuar circulando, indícalo.
+14. No inventes precios exactos.
 
-15. Cuando tengas suficiente información, realiza el diagnóstico.
+15. Si falta información importante, pregunta por ella.
+
+16. Si existe riesgo de seguir circulando,
+indícalo claramente.
+
+17. Cuando tengas información suficiente,
+realiza el diagnóstico final.
 
 ========================
 
 DIAGNÓSTICO FINAL
 
-Cuando tengas suficiente información responde exactamente
-con esta estructura:
+Cuando tengas suficiente información responde:
 
 DIAGNÓSTICO FINAL
 
 🚗 VEHÍCULO
-Indica el vehículo analizado.
 
 🔌 CÓDIGOS OBD
-Explica el significado de cada código recibido.
 
 🔧 AVERÍA MÁS PROBABLE
-Indica la causa más probable.
 
-📊 PROBABILIDAD
-Da una estimación aproximada y explica por qué.
+📊 PROBABILIDAD APROXIMADA
 
 🔍 CAUSAS ALTERNATIVAS
-Enumera otras causas posibles.
 
 🧪 PRUEBAS RECOMENDADAS
-Explica las comprobaciones en orden lógico.
 
-🛠️ REPARACIÓN
-Indica qué debería repararse si las pruebas lo confirman.
+🛠️ REPARACIÓN RECOMENDADA
 
 💰 COSTE ESTIMADO
-Indica un rango aproximado de piezas y mano de obra.
-Aclara que puede variar según país y taller.
 
 ⭐ DIFICULTAD
-Fácil / Media / Difícil / Profesional.
 
-⚠️ URGENCIA
-Baja / Media / Alta / No circular.
+⚠️ NIVEL DE URGENCIA
 
 🚗 ¿SE PUEDE SEGUIR CIRCULANDO?
-Explica claramente el riesgo.
 
-📋 RECOMENDACIONES
-Indica los siguientes pasos.
-
-========================
+📋 RECOMENDACIONES FINALES
 
 Si todavía necesitas información,
 responde únicamente con UNA pregunta.
 
 `;
 
-
+    // Llamada a OpenAI
     const openaiResponse = await fetch(
       "https://api.openai.com/v1/chat/completions",
       {
-
         method: "POST",
 
         headers: {
-
-          "Content-Type":
-            "application/json",
-
+          "Content-Type": "application/json",
           "Authorization":
             `Bearer ${process.env.OPENAI_API_KEY}`
-
         },
 
         body: JSON.stringify({
@@ -243,29 +244,23 @@ responde únicamente con UNA pregunta.
           model: "gpt-4o-mini",
 
           messages: [
-
             {
               role: "system",
               content:
                 "Eres Mecánico-IA, especialista en diagnóstico de coches y motos."
             },
-
             {
               role: "user",
               content: prompt
             }
-
           ],
 
           temperature: 0.2,
 
           max_tokens: 1800
-
         })
-
       }
     );
-
 
     if (!openaiResponse.ok) {
 
@@ -277,43 +272,28 @@ responde únicamente con UNA pregunta.
       return res.status(500).json({
         error: "Error de OpenAI"
       });
-
     }
-
 
     const data =
       await openaiResponse.json();
 
-
     const respuesta =
       data.choices?.[0]?.message?.content || "";
 
-
     const final =
-      respuesta.includes(
-        "DIAGNÓSTICO FINAL"
-      );
-
+      respuesta.includes("DIAGNÓSTICO FINAL");
 
     return res.status(200).json({
-
       respuesta,
-
       final
-
     });
-
 
   } catch (error) {
 
     console.error(error);
 
     return res.status(500).json({
-
       error: "Error interno del servidor"
-
     });
-
   }
-
 }
