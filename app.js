@@ -8,13 +8,27 @@ let diagnostico = {
 let numeroPregunta = 0;
 
 
+// ==========================================
+// INICIAR DIAGNÓSTICO
+// ==========================================
+
 async function iniciarDiagnostico() {
 
-  const tipo = document.getElementById("tipo").value;
-  const marca = document.getElementById("marca").value.trim();
-  const modelo = document.getElementById("modelo").value.trim();
-  const anio = document.getElementById("anio").value.trim();
-  const motor = document.getElementById("motor").value.trim();
+  const tipo =
+    document.getElementById("tipo").value;
+
+  const marca =
+    document.getElementById("marca").value.trim();
+
+  const modelo =
+    document.getElementById("modelo").value.trim();
+
+  const anio =
+    document.getElementById("anio").value.trim();
+
+  const motor =
+    document.getElementById("motor").value.trim();
+
   const combustible =
     document.getElementById("combustible").value;
 
@@ -34,7 +48,15 @@ async function iniciarDiagnostico() {
     document.getElementById("codigosOBD").value.trim();
 
 
-  if (!marca || !modelo || !anio || !motor || !problema) {
+  // Comprobar datos obligatorios
+
+  if (
+    !marca ||
+    !modelo ||
+    !anio ||
+    !motor ||
+    !problema
+  ) {
 
     mostrarMensaje(
       "⚠️ Completa marca, modelo, año, motor y describe el problema."
@@ -44,18 +66,29 @@ async function iniciarDiagnostico() {
   }
 
 
+  // ==========================================
+  // PROCESAR CÓDIGOS OBD
+  // ==========================================
+
   const obd = obdTexto
     ? obdTexto
         .toUpperCase()
-        .split(",")
+        .split(/[,\s]+/)
         .map(codigo => codigo.trim())
-        .filter(codigo => codigo.length > 0)
+        .filter(codigo =>
+          /^[PBCU][0-9]{4}$/.test(codigo)
+        )
     : [];
 
+
+  // ==========================================
+  // CREAR DIAGNÓSTICO
+  // ==========================================
 
   diagnostico = {
 
     vehiculo: {
+
       tipo,
       marca,
       modelo,
@@ -65,6 +98,7 @@ async function iniciarDiagnostico() {
       kilometros,
       testigos,
       reparaciones
+
     },
 
     problema,
@@ -72,25 +106,50 @@ async function iniciarDiagnostico() {
     obd,
 
     historial: []
+
   };
 
 
   numeroPregunta = 1;
 
-  document.getElementById("btnInicio").disabled = true;
 
-  document.getElementById("formulario").style.display = "none";
+  // Desactivar botón
 
-  document.getElementById("zonaDiagnostico").style.display = "block";
+  document.getElementById(
+    "btnInicio"
+  ).disabled = true;
+
+
+  // Ocultar formulario
+
+  document.getElementById(
+    "formulario"
+  ).style.display = "none";
+
+
+  // Mostrar diagnóstico
+
+  document.getElementById(
+    "zonaDiagnostico"
+  ).style.display = "block";
+
 
   await enviarDiagnostico();
 }
 
 
+
+// ==========================================
+// RESPONDER PREGUNTA
+// ==========================================
+
 async function responderPregunta() {
 
   const respuesta =
-    document.getElementById("respuestaUsuario").value.trim();
+    document
+      .getElementById("respuestaUsuario")
+      .value
+      .trim();
 
 
   if (!respuesta) {
@@ -103,28 +162,43 @@ async function responderPregunta() {
   }
 
 
+  // Guardar pregunta + respuesta
+
   diagnostico.historial.push({
 
     pregunta:
-      document.getElementById("pregunta").innerText,
+      document
+        .getElementById("pregunta")
+        .innerText,
 
     respuesta
 
   });
 
 
-  document.getElementById("respuestaUsuario").value = "";
+  // Limpiar campo
+
+  document.getElementById(
+    "respuestaUsuario"
+  ).value = "";
+
 
   numeroPregunta++;
+
 
   await enviarDiagnostico();
 }
 
 
+
+// ==========================================
+// ENVIAR DATOS A LA IA
+// ==========================================
+
 async function enviarDiagnostico() {
 
   mostrarMensaje(
-    "🤖 Mecánico-IA está analizando el vehículo..."
+    "🤖 Mecánico-IA está analizando..."
   );
 
 
@@ -133,28 +207,39 @@ async function enviarDiagnostico() {
     const response = await fetch(
       "/api/diagnostico",
       {
+
         method: "POST",
 
         headers: {
           "Content-Type": "application/json"
         },
 
-        body: JSON.stringify(diagnostico)
+        body:
+          JSON.stringify(diagnostico)
+
       }
     );
 
 
     if (!response.ok) {
 
-      throw new Error("Error del servidor");
+      throw new Error(
+        "Error del servidor"
+      );
 
     }
 
 
-    const data = await response.json();
+    const data =
+      await response.json();
+
 
     ocultarMensaje();
 
+
+    // ======================================
+    // DIAGNÓSTICO FINAL
+    // ======================================
 
     if (data.final) {
 
@@ -170,17 +255,23 @@ async function enviarDiagnostico() {
 
       document.getElementById(
         "textoResultado"
-      ).innerText = data.respuesta;
+      ).innerText =
+        data.respuesta;
 
 
       return;
     }
 
 
+    // ======================================
+    // SIGUIENTE PREGUNTA
+    // ======================================
+
     document.getElementById(
       "progreso"
     ).innerText =
-      "Pregunta " + numeroPregunta;
+      "Pregunta " +
+      numeroPregunta;
 
 
     document.getElementById(
@@ -193,63 +284,101 @@ async function enviarDiagnostico() {
 
     console.error(error);
 
+
     mostrarMensaje(
       "❌ No se ha podido conectar con Mecánico-IA."
     );
+
   }
+
 }
 
+
+
+// ==========================================
+// NUEVO DIAGNÓSTICO
+// ==========================================
 
 function nuevoDiagnostico() {
 
   diagnostico = {
+
     vehiculo: {},
+
     problema: "",
+
     obd: [],
+
     historial: []
+
   };
+
 
   numeroPregunta = 0;
 
+
+  // Mostrar formulario
 
   document.getElementById(
     "formulario"
   ).style.display = "block";
 
 
+  // Ocultar resultado
+
   document.getElementById(
     "resultado"
   ).style.display = "none";
 
+
+  // Ocultar zona de preguntas
 
   document.getElementById(
     "zonaDiagnostico"
   ).style.display = "none";
 
 
+  // Reactivar botón
+
   document.getElementById(
     "btnInicio"
   ).disabled = false;
 
 
-  document.querySelectorAll(
-    "input, textarea"
-  ).forEach(element => {
+  // Limpiar campos
 
-    element.value = "";
+  document
+    .querySelectorAll(
+      "input, textarea"
+    )
+    .forEach(element => {
 
-  });
+      element.value = "";
+
+    });
+
 }
 
+
+
+// ==========================================
+// MENSAJES
+// ==========================================
 
 function mostrarMensaje(texto) {
 
   const mensaje =
-    document.getElementById("mensaje");
+    document.getElementById(
+      "mensaje"
+    );
+
 
   mensaje.innerText = texto;
 
-  mensaje.style.display = "block";
+
+  mensaje.style.display =
+    "block";
+
 }
 
 
@@ -257,5 +386,7 @@ function ocultarMensaje() {
 
   document.getElementById(
     "mensaje"
-  ).style.display = "none";
+  ).style.display =
+    "none";
+
 }
