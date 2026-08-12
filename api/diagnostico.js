@@ -1,5 +1,4 @@
 export default async function handler(req, res) {
-  // Solo aceptamos POST
   if (req.method !== "POST") {
     return res.status(405).json({
       error: "Método no permitido"
@@ -7,83 +6,73 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { mensaje, vehiculo } = req.body || {};
+    const { consulta, vehiculo } = req.body || {};
 
-    if (!mensaje) {
+    if (!consulta) {
       return res.status(400).json({
-        error: "Falta el mensaje"
+        error: "Escribe una consulta sobre el problema del vehículo"
       });
     }
 
-    const apiKey = process.env.OPENAI_API_KEY;
-
-    if (!apiKey) {
+    if (!process.env.OPENAI_API_KEY) {
       return res.status(500).json({
-        error: "OPENAI_API_KEY no está configurada en Vercel"
+        error: "Falta configurar OPENAI_API_KEY en Vercel"
       });
     }
 
     const prompt = `
-Eres MECÁNICO-IA, un experto en diagnóstico y reparación de coches y motocicletas.
+Eres Mecánico-IA, un asistente experto en diagnóstico de coches y motos.
 
-Analiza el problema del vehículo y responde en español de forma clara y práctica.
+Analiza el problema descrito por el usuario y responde en español.
 
 Vehículo:
 ${vehiculo || "No especificado"}
 
-Problema descrito:
-${mensaje}
+Problema:
+${consulta}
 
-Debes:
-1. Indicar las causas más probables.
-2. Ordenarlas de más probable a menos probable.
-3. Explicar cómo comprobar cada causa.
-4. Indicar qué herramientas pueden ser necesarias.
-5. Indicar una posible reparación.
-6. Avisar si existe algún riesgo de seguridad.
+Da una respuesta práctica y ordenada:
 
-No inventes datos. Si falta información importante, pregunta por ella.
+1. Posibles causas, de más probable a menos probable.
+2. Comprobaciones que puede hacer el usuario.
+3. Herramientas necesarias.
+4. Qué reparación podría solucionar el problema.
+5. Nivel de dificultad: fácil, medio o difícil.
+6. Si existe riesgo de seguir circulando, indícalo claramente.
+
+No inventes datos técnicos específicos del vehículo si no están disponibles.
 `;
 
-    const respuesta = await fetch(
-      "https://api.openai.com/v1/responses",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${apiKey}`
-        },
-        body: JSON.stringify({
-          model: "gpt-5-mini",
-          input: prompt
-        })
-      }
-    );
+    const response = await fetch("https://api.openai.com/v1/responses", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: "gpt-5.4-mini",
+        input: prompt
+      })
+    });
 
-    const datos = await respuesta.json();
+    const data = await response.json();
 
-    if (!respuesta.ok) {
-      console.error("Error OpenAI:", datos);
+    if (!response.ok) {
+      console.error("Error OpenAI:", data);
 
-      return res.status(respuesta.status).json({
-        error: datos?.error?.message || "Error al conectar con OpenAI"
+      return res.status(response.status).json({
+        error: data?.error?.message || "Error al conectar con OpenAI"
       });
     }
 
-    const texto =
-      datos.output_text ||
-      datos.output
-        ?.flatMap(item => item.content || [])
-        ?.map(item => item.text || "")
-        ?.join("") ||
-      "No se recibió una respuesta de la IA.";
+    const respuesta = data.output_text || "No se recibió respuesta de la IA.";
 
     return res.status(200).json({
-      respuesta: texto
+      respuesta
     });
 
   } catch (error) {
-    console.error("Error del servidor:", error);
+    console.error("Error:", error);
 
     return res.status(500).json({
       error: "Error interno del servidor"
